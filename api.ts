@@ -28,10 +28,10 @@ class tieTuKu {
 		return this.accessKey + ":" + encodedSign + ":" + encodedParam;
 	}
 	///上传
-	upload(file: HTMLElement, callback: Function) {
+	upload(file: HTMLElement,aid, callback: Function) {
 		var formData = new FormData();
-        formData.append("Token", this.getToken({ deadline: Date.now() + 60, "aid": "1134173" }));
-        formData.append("file", file);
+        formData.append("Token", this.getToken({ deadline: Date.now() + 60, "aid": aid }));
+        formData.append("file", file.files[0]);
 		this.processRequest(formData,"http://up.tietuku.com/",callback);
 	}
 	///获取相册
@@ -61,12 +61,3 @@ class tieTuKu {
 		this.processRequest(formData,this.host+"getpiclist",callBack);
 	}
 }
-var tuKu = new tieTuKu("2d11a084b8ef3a977ae58ecb7f2a05b8dfaec57c",
-	"da39a3ee5e6b4b0d3255bfef95601890afd80709",
-	"apmXlsNhamnGnsiWlJGdmWeXy2dqyMWWbplolGJnmXCcm8fKxWZpmMOblGiSYpU==");
-
-document.getElementById("selectFile").onchange = function() {
-	tuKu.upload(this.files[0], function(data) {
-		
-	});
-};

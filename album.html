@@ -1,0 +1,12 @@
+<div class="row">
+		<div class="col-sm-4 col-md-3" ng-repeat="album in albumInfo.album">
+			<div class="thumbnail">
+				<a ng-href="#/albumpic/{{album.aid}}">
+					<img ng-src="{{album.pic[0].url}}">
+					<div class="caption">
+						<h4 ng-bind="album.albumname"></h3>
+					</div>
+				</a>
+			</div>
+		</div>
+	</div>
