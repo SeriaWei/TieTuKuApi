@@ -3,6 +3,8 @@ var tieTuKu = (function () {
         this.methd = "POST";
         this.host = "http://api.tietuku.com/v2/api/";
         this.albumUrl = "http://api.tietuku.com/v1/Album";
+        this.picListUrl = "http://api.tietuku.com/v1/List";
+        this.picUrl = "http://api.tietuku.com/v1/Pic";
         this.returnType = "json";
         this.accessKey = accessKey;
         this.secretKey = secretKey;
@@ -22,9 +24,43 @@ var tieTuKu = (function () {
         xhr.send(formData);
     };
     tieTuKu.prototype.getToken = function (obj) {
-        var encodedParam = new Base64().encode(JSON.stringify(obj));
-        var encodedSign = new Base64().encode(CryptoJS.HmacSHA1(encodedParam, this.secretKey).toString());
+        obj.deadline = Date.now() + 60;
+        var encodedParam = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(JSON.stringify(obj)));
+        var encodedSign = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(CryptoJS.HmacSHA1(encodedParam, this.secretKey).toString()));
         return this.accessKey + ":" + encodedSign + ":" + encodedParam;
+    };
+    ///全部图片列表
+    tieTuKu.prototype.getNewPic = function (p, callBack) {
+        var formData = new FormData();
+        formData.append("Token", this.getToken({ action: "getnewpic", cid: 1, page_no: p }));
+        this.processRequest(formData, this.picListUrl, callBack);
+    };
+    tieTuKu.prototype.createAlbum = function (name, callBack) {
+        var formData = new FormData();
+        formData.append("Token", this.getToken({ action: "create", albumname: name }));
+        this.processRequest(formData, this.albumUrl, callBack);
+    };
+    tieTuKu.prototype.deleteAlbum = function (aid, callBack) {
+        var formData = new FormData();
+        formData.append("Token", this.getToken({ action: "delalbum", aid: aid }));
+        this.processRequest(formData, this.albumUrl, callBack);
+    };
+    tieTuKu.prototype.updateAlbum = function (aid, name, callBack) {
+        var formData = new FormData();
+        formData.append("Token", this.getToken({ action: "editalbum", aid: aid, albumname: name }));
+        this.processRequest(formData, this.albumUrl, callBack);
+    };
+    ///获取相册
+    tieTuKu.prototype.getAlbum = function (p, callBack) {
+        var formData = new FormData();
+        formData.append("Token", this.getToken({ action: "get", page_no: p }));
+        this.processRequest(formData, this.albumUrl, callBack);
+    };
+    ///获取相册内图片
+    tieTuKu.prototype.getAlbumPic = function (p, aid, callBack) {
+        var formData = new FormData();
+        formData.append("Token", this.getToken({ action: "album", aid: aid, page_no: p }));
+        this.processRequest(formData, this.picListUrl, callBack);
     };
     ///上传
     tieTuKu.prototype.upload = function (file, aid, callback) {
@@ -33,46 +69,20 @@ var tieTuKu = (function () {
         formData.append("file", file.files[0]);
         this.processRequest(formData, "http://up.tietuku.com/", callback);
     };
-    ///全部图片列表
-    tieTuKu.prototype.getNewpic = function (p, callBack) {
+    tieTuKu.prototype.deletePic = function (pid, callBack) {
         var formData = new FormData();
-        formData.append("key", this.openKey);
-        formData.append("returntype", this.returnType);
-        formData.append("p", p);
-        formData.append("cid", 1);
-        this.processRequest(formData, this.host + "getnewpic", callBack);
+        formData.append("Token", this.getToken({ action: "delpic", pid: pid }));
+        this.processRequest(formData, this.picUrl, callBack);
     };
-    tieTuKu.prototype.createAlbum = function (name, callBack) {
+    tieTuKu.prototype.updatePic = function (pid, name, callBack) {
         var formData = new FormData();
-        formData.append("Token", this.getToken({ deadline: Date.now() + 60, action: "create", albumname: name }));
-        this.processRequest(formData, this.albumUrl, callBack);
+        formData.append("Token", this.getToken({ action: "updatepicname", pid: pid, pname: name }));
+        this.processRequest(formData, this.picUrl, callBack);
     };
-    tieTuKu.prototype.editAlbum = function (aid, name, callBack) {
+    tieTuKu.prototype.getPicInfo = function (pid, callBack) {
         var formData = new FormData();
-        formData.append("Token", this.getToken({ deadline: Date.now() + 60, action: "editalbum", aid: aid, albumname: encodeURI(name) }));
-        this.processRequest(formData, this.albumUrl, callBack);
-    };
-    tieTuKu.prototype.deleteAlbum = function (aid, callBack) {
-        var formData = new FormData();
-        formData.append("Token", this.getToken({ deadline: Date.now() + 60, action: "delalbum", aid: aid }));
-        this.processRequest(formData, this.albumUrl, callBack);
-    };
-    ///获取相册
-    tieTuKu.prototype.getAlbum = function (p, callBack) {
-        var formData = new FormData();
-        formData.append("key", this.openKey);
-        formData.append("returntype", this.returnType);
-        formData.append("p", p);
-        this.processRequest(formData, this.host + "getalbum", callBack);
-    };
-    ///获取相册内图片
-    tieTuKu.prototype.getPicList = function (p, aid, callBack) {
-        var formData = new FormData();
-        formData.append("key", this.openKey);
-        formData.append("returntype", this.returnType);
-        formData.append("p", p);
-        formData.append("aid", aid);
-        this.processRequest(formData, this.host + "getpiclist", callBack);
+        formData.append("Token", this.getToken({ action: "getonepic", id: pid }));
+        this.processRequest(formData, this.picUrl, callBack);
     };
     return tieTuKu;
 })();

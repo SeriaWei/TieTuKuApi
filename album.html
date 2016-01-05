@@ -1,15 +1,25 @@
+<hr/>
 <div  class="form-inline">
 	<div class="form-group">
 		<label for="albumName">相册名称</label>
 		<input type="text" class="form-control" id="albumName" placeholder="输入相册名称" ng-model="albumName"/>
 		<input type="button" value="创建" class="btn btn-primary" ng-click="createAlbum()"/>
 	</div>
+	<div class="form-group">
+		<input id="AccessKey" type="text" class="form-control" placeholder="AccessKey"/>
+	</div>
+	<div class="form-group">
+		<input id="SecretKey" type="text" class="form-control" placeholder="SecretKey"/>
+	</div>
+	<div class="form-group">
+		<input id="OpenKey" type="text" class="form-control" placeholder="OpenKey"/>
+	</div>
 </div>
 <hr/>
 <div class="row">
 		<div class="col-sm-4 col-md-3" ng-repeat="album in albumInfo.album">
 			<div class="thumbnail">
-				<a ng-href="#/albumpic/{{album.aid}}/name/{{album.albumname}}">
+				<a ng-href="#/albumpic/{{album.aid}}/{{album.albumname}}">
 					<img ng-src="{{album.pic[0].url}}">
 					<div class="caption">
 						<h4 ng-bind="album.albumname"></h3>

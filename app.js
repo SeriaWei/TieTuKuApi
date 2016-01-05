@@ -6,14 +6,13 @@ angular
 				templateUrl: 'album.html',
 				controller: 'albumController'
 			})
-			.when('/albumpic/:aid/name/:name', {
+			.when('/albumpic/:aid/:name', {
 				templateUrl: 'albumPic.html',
 				controller: 'albumPicController'
 			})
-			.when('/albumpic/:aid/p/:p', {
+			.when('/albumpic/:aid/:name/:p', {
 				templateUrl: 'albumPic.html',
-				controller: 'albumPicController',
-				
+				controller: 'albumPicController'
 			});
 	})
 	.directive("ngFile", function ($parse, tuKuApi) {
@@ -46,21 +45,21 @@ angular
 			}
 		}
 	})
-	.service("tuKuApi", function () {
-		return new tieTuKu("2d11a084b8ef3a977ae58ecb7f2a05b8dfaec57c",
-			"da39a3ee5e6b4b0d3255bfef95601890afd80709",
-			"apmXlsNhamnGnsiWlJGdmWeXy2dqyMWWbplolGJnmXCcm8fKxWZpmMOblGiSYpU==");
+	.service("tuKuApi", function () {		
+		return new tieTuKu("8785e5649fcb34a820f4166de62887851a303404",
+			"f6da983de97064ae36a467aa6bf0dce071a0cfd9",
+			"cGyemsdmaGmdzMaSlGTFmmJmzGZjmZiYnGloa2ppb21plpmVlWViacOblGiSYpU=");
 	})
 	.controller("albumController", function ($scope, tuKuApi) {
-		$scope.reloadAlbum=function(){
+		$scope.reloadAlbum = function () {
 			tuKuApi.getAlbum(1, function (data) {
 				$scope.$apply(function () {
 					$scope.albumInfo = data;
 				});
 			});
 		}
-		$scope.createAlbum=function(){
-			tuKuApi.createAlbum($scope.albumName,function(data){
+		$scope.createAlbum = function () {
+			tuKuApi.createAlbum($scope.albumName, function (data) {
 				$scope.reloadAlbum();
 			});
 		}
@@ -68,12 +67,12 @@ angular
 	})
 	.controller("albumPicController", function ($scope, $routeParams, tuKuApi) {
 		$scope.aid = $routeParams.aid;
-		$scope.albumName=$routeParams.name;
+		$scope.albumName = $routeParams.name;
 		$scope.p = parseInt($routeParams.p || 1);
 		$scope.getpic = function () {
 			$scope.loading = true;
 			$scope.newPic = null;
-			tuKuApi.getPicList($scope.p, $routeParams.aid, function (data) {
+			tuKuApi.getAlbumPic($scope.p, $routeParams.aid, function (data) {
 				$scope.$apply(function () {
 					$scope.pageArray = new Array(data.pages);
 					$scope.picInfo = data;
@@ -81,15 +80,19 @@ angular
 				});
 			});
 		}
-		$scope.editAlbum=function(){
-			
-			tuKuApi.editAlbum($scope.aid,$scope.albumName,function(data){
+		$scope.editAlbum = function () {
+			tuKuApi.updateAlbum($scope.aid, $scope.albumName, function (data) {
 				console.log(data)
 			});
 		}
-		$scope.deleteAlbum=function(){
-			tuKuApi.deleteAlbum($scope.aid,function(){
-				window.location.href="/";
+		$scope.deleteAlbum = function () {
+			tuKuApi.deleteAlbum($scope.aid, function () {
+				window.location.href = "/";
+			});
+		}
+		$scope.deletePic = function (pid) {
+			tuKuApi.deletePic(pid, function () {
+				$scope.getpic();
 			});
 		}
 		$scope.getpic();

@@ -1,21 +1,22 @@
-<html ng-app="api">
+<html ng-app="api" ng-csp="*">
 
 <head>
 	<title></title>
 	<meta charset="utf-8"/>
+	
 	<script type="text/javascript" src="angular/angular.js"></script>
 	<script type="text/javascript" src="angular/angular-route.js"></script>
 	<script type="text/javascript" src="CryptoJS/rollups/hmac-sha1.js"></script>
 	<script type="text/javascript" src="CryptoJS/components/enc-base64.js"></script>
-	<script type="text/javascript" src="base64.js"></script>
 	<script type="text/javascript" src="api.js"></script>
 	<link href="bootstrap/css/bootstrap.css" rel="stylesheet">
 	<style>
 		.thumbnail{
-			height: 150px;
+			height: 188px;
 		}
 		.thumbnail img{
 			max-height: 140px;
+			vertical-align: middle;
 		}
 		.modal.in{
 			display: block;
