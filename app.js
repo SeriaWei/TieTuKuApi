@@ -24,12 +24,16 @@ angular
 						scope.$apply(function () {
 							scope.loading = true;
 						});
-						tuKuApi.upload(this, scope.aid, function (data) {
-							scope.$apply(function () {
-								scope.newPic = data;
-								scope.loading = false;
+						var file = this;
+						tuKuApi.getService(function (service) {
+							service.upload(file, scope.aid, function (data) {
+								scope.$apply(function () {
+									scope.newPic = data;
+									scope.loading = false;
+								});
 							});
 						});
+
 					}
 				});
 			}
@@ -45,24 +49,52 @@ angular
 			}
 		}
 	})
-	.service("tuKuApi", function () {		
-		return new tieTuKu("8785e5649fcb34a820f4166de62887851a303404",
-			"f6da983de97064ae36a467aa6bf0dce071a0cfd9",
-			"cGyemsdmaGmdzMaSlGTFmmJmzGZjmZiYnGloa2ppb21plpmVlWViacOblGiSYpU=");
+	.service("tuKuApi", function () {
+		return {
+			getService: function (onSuccess) {
+				DbContext.getOpenSetting(function (setting) {
+					onSuccess.call(this, new tieTuKu(setting.AccessKey, setting.SecretKey, setting.OpenKey));
+				});
+			}
+		};
 	})
 	.controller("albumController", function ($scope, tuKuApi) {
+		$scope.isNeedUpdateOpenKey = false;
+		$scope.showOpenKey = function () {
+			$scope.isNeedUpdateOpenKey = true;
+		}
 		$scope.reloadAlbum = function () {
-			tuKuApi.getAlbum(1, function (data) {
-				$scope.$apply(function () {
-					$scope.albumInfo = data;
+			$scope.loading = true;
+			tuKuApi.getService(function (service) {
+				service.getAlbum(1, function (data) {
+					$scope.$apply(function () {
+						$scope.albumInfo = data;
+						$scope.loading = false;
+					});
 				});
 			});
 		}
 		$scope.createAlbum = function () {
-			tuKuApi.createAlbum($scope.albumName, function (data) {
-				$scope.reloadAlbum();
+			tuKuApi.getService(function (service) {
+				service.createAlbum($scope.albumName, function (data) {
+					$scope.reloadAlbum();
+				});
 			});
 		}
+		$scope.saveOpenKey = function () {
+			DbContext.updateOpenSetting($scope.OpenSetting, function () {
+				$scope.reloadAlbum();
+			});
+			$scope.isNeedUpdateOpenKey = false;
+		}
+		DbContext.getOpenSetting(function (setting) {
+			$scope.$apply(function () {
+				$scope.OpenSetting = setting;
+				if (!setting.AccessKey) {
+					$scope.isNeedUpdateOpenKey = true;
+				}
+			});
+		});
 		$scope.reloadAlbum();
 	})
 	.controller("albumPicController", function ($scope, $routeParams, tuKuApi) {
@@ -72,28 +104,40 @@ angular
 		$scope.getpic = function () {
 			$scope.loading = true;
 			$scope.newPic = null;
-			tuKuApi.getAlbumPic($scope.p, $routeParams.aid, function (data) {
-				$scope.$apply(function () {
-					$scope.pageArray = new Array(data.pages);
-					$scope.picInfo = data;
-					$scope.loading = false;
+			tuKuApi.getService(function (service) {
+				service.getAlbumPic($scope.p, $routeParams.aid, function (data) {
+					$scope.$apply(function () {
+						$scope.pageArray = new Array(data.pages);
+						$scope.picInfo = data;
+						$scope.loading = false;
+					});
 				});
 			});
 		}
 		$scope.editAlbum = function () {
-			tuKuApi.updateAlbum($scope.aid, $scope.albumName, function (data) {
-				console.log(data)
+			tuKuApi.getService(function (service) {
+				service.updateAlbum($scope.aid, $scope.albumName, function (data) {
+					console.log(data)
+				});
 			});
 		}
 		$scope.deleteAlbum = function () {
-			tuKuApi.deleteAlbum($scope.aid, function () {
-				window.location.href = "/";
-			});
+			if (confirm('确认要删除相册吗？')) {
+				tuKuApi.getService(function (service) {
+					service.deleteAlbum($scope.aid, function () {
+						window.location.href = "/";
+					});
+				});
+			}
 		}
 		$scope.deletePic = function (pid) {
-			tuKuApi.deletePic(pid, function () {
-				$scope.getpic();
-			});
+			if (confirm('确认要删除图片吗？')) {
+				tuKuApi.getService(function (service) {
+					service.deletePic(pid, function () {
+						$scope.getpic();
+					});
+				});
+			}
 		}
 		$scope.getpic();
 	});

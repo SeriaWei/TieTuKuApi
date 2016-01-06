@@ -31,7 +31,7 @@ var DbContext = {
 	updateOpenSetting: function (setting, onSuccess) {
 		DbContext.DataBase
 			.transaction(["forToken"], "readwrite")
-			.transaction.objectStore("forToken")
+			.objectStore("forToken")
 			.put(setting).onsuccess = function (e) {
 				if (onSuccess) {
 					onSuccess.call(this, e.target.result);
