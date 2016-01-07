@@ -4,8 +4,10 @@
 		<div class="form-group">
 			<a href="#/" class="btn btn-link">返回相册</a>
 			<label for="albumName">相册名称</label>
-			<input type="text" class="form-control" id="albumName" placeholder="输入相册名称" ng-model="albumName" />
-			<input type="button" value="保存" class="btn btn-primary" ng-click="editAlbum()" />
+			<input type="text" ng-readonly="readonly" ng-init="readonly=true" ng-click="readonly=false" class="form-control" id="albumName" placeholder="输入相册名称" ng-model="albumName" ng-keyup="editAlbum($event)"/>
+			
+		</div>
+		<div class="form-group">
 			<input type="button" value="删除" class="btn btn-danger" ng-click="deleteAlbum()" />
 			<a class="btn btn-primary" ng-trigger>上传图片</a>
 			<input id="selectFile" type="file" ng-file="files" />
@@ -23,7 +25,7 @@
 				</div>
 				<div class="modal-body">
 					<div style="max-height:300px;overflow: auto;">
-						<img ng-src="{{newPic.linkurl}}" style="width:100%" />
+						<img ng-src="{{newPic.linkurl}}" style="max-width:100%; margin: 0 auto;display: block;" />
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -42,7 +44,7 @@
 	</div>
 	<div ng-if="picInfo">
 		<div class="row">
-			<div class="col-sm-4 col-md-3" ng-repeat="pic in picInfo.pic">
+			<div class="col-lg-3 col-md-3 col-sm-4 col-xs-6" ng-repeat="pic in picInfo.pic">
 				<div class="thumbnail">
 					<a ng-href="{{pic.linkurl}}" target="_blank" >
 						<img ng-src="{{pic.linkurl}}" />

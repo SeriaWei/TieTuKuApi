@@ -1,7 +1,7 @@
-<html ng-app="api" ng-csp="*">
+<html ng-app="api" ng-csp>
 
 <head>
-	<title></title>
+	<title>图库</title>
 	<meta charset="utf-8"/>
 	<script type="text/javascript" src="indexDb.js"></script>
 	<script type="text/javascript" src="angular/angular.js"></script>
@@ -9,26 +9,16 @@
 	<script type="text/javascript" src="CryptoJS/rollups/hmac-sha1.js"></script>
 	<script type="text/javascript" src="CryptoJS/components/enc-base64.js"></script>
 	<script type="text/javascript" src="api.js"></script>
+	<script type="text/javascript" src="app.js"></script>
 	<link href="bootstrap/css/bootstrap.css" rel="stylesheet">
-	<style>
-		.thumbnail{
-			height: 188px;
-		}
-		.thumbnail img{
-			max-height: 140px;
-			vertical-align: middle;
-		}
-		.modal.in{
-			display: block;
-		}
-		#selectFile{
-			display: none;
-		}
-	</style>
+	<link href="style.css" rel="stylesheet">	
 </head>
 
-<body>
+<body ng-controller="mainController">
+	<div class="container">
+		<div ng-if="status&&status.code!='200'&&status.info" ng-bind="status.info" class="alert alert-info"></div>	
+	</div>
+	
 	<div class="container" ng-view></div>
-	<script type="text/javascript" src="app.js"></script>
 </body>
 </html>

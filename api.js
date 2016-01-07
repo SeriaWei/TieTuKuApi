@@ -6,6 +6,7 @@ var tieTuKu = (function () {
         this.picListUrl = "http://api.tietuku.com/v1/List";
         this.picUrl = "http://api.tietuku.com/v1/Pic";
         this.returnType = "json";
+        this.onprogress = function () { };
         this.accessKey = accessKey;
         this.secretKey = secretKey;
         this.openKey = openKey;
@@ -19,6 +20,16 @@ var tieTuKu = (function () {
             }
             else {
                 callback.call(data, JSON.parse(data.target.response));
+            }
+        };
+        xhr.onerror = function (data) {
+            console.error(data.target.response);
+            callback.call(data, data.target.response);
+        };
+        xhr.upload.onprogress = function (e) {
+            var persecnt = e.loaded / e.total * 100;
+            if (onprogress) {
+                onprogress.call(e, persecnt);
             }
         };
         xhr.send(formData);

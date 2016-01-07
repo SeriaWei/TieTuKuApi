@@ -28,7 +28,10 @@ angular
 						tuKuApi.getService(function (service) {
 							service.upload(file, scope.aid, function (data) {
 								scope.$apply(function () {
-									scope.newPic = data;
+									if(!data.info){
+										scope.newPic = data;
+									}									
+									scope.$parent.status = data;
 									scope.loading = false;
 								});
 							});
@@ -52,11 +55,29 @@ angular
 	.service("tuKuApi", function () {
 		return {
 			getService: function (onSuccess) {
-				DbContext.getOpenSetting(function (setting) {
-					onSuccess.call(this, new tieTuKu(setting.AccessKey, setting.SecretKey, setting.OpenKey));
+				DbContext.getData("openKey", "1", function (setting) {
+					if (!setting) {
+						setting = {
+							id: "1",
+							AccessKey: "",
+							SecretKey: "",
+							OpenKey: ""
+						};
+						DbContext.insert("openKey",setting);
+					}
+					onSuccess.call(setting, new tieTuKu(setting.AccessKey, setting.SecretKey, setting.OpenKey));
 				});
 			}
 		};
+	})
+	.config([
+		'$compileProvider',
+		function ($compileProvider) {
+			$compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|chrome-extension):/);
+		}
+	])
+	.controller("mainController", function ($scope) {
+		$scope.status = { code: "200", info: "" };
 	})
 	.controller("albumController", function ($scope, tuKuApi) {
 		$scope.isNeedUpdateOpenKey = false;
@@ -66,10 +87,14 @@ angular
 		$scope.reloadAlbum = function () {
 			$scope.loading = true;
 			tuKuApi.getService(function (service) {
+				$scope.OpenSetting = this;				
 				service.getAlbum(1, function (data) {
 					$scope.$apply(function () {
 						$scope.albumInfo = data;
 						$scope.loading = false;
+						if (data.code === "433") {
+							$scope.isNeedUpdateOpenKey = true;
+						}
 					});
 				});
 			});
@@ -78,26 +103,24 @@ angular
 			tuKuApi.getService(function (service) {
 				service.createAlbum($scope.albumName, function (data) {
 					$scope.reloadAlbum();
+					$scope.$apply(function () {
+						$scope.$parent.status = data;
+					});
 				});
 			});
 		}
 		$scope.saveOpenKey = function () {
-			DbContext.updateOpenSetting($scope.OpenSetting, function () {
+			DbContext.update("openKey",$scope.OpenSetting, function () {
 				$scope.reloadAlbum();
 			});
 			$scope.isNeedUpdateOpenKey = false;
 		}
-		DbContext.getOpenSetting(function (setting) {
-			$scope.$apply(function () {
-				$scope.OpenSetting = setting;
-				if (!setting.AccessKey) {
-					$scope.isNeedUpdateOpenKey = true;
-				}
-			});
-		});
+		$scope.cancelOpenKey = function () {
+			$scope.isNeedUpdateOpenKey = false;
+		}
 		$scope.reloadAlbum();
 	})
-	.controller("albumPicController", function ($scope, $routeParams, tuKuApi) {
+	.controller("albumPicController", function ($scope, $routeParams, tuKuApi, $location) {
 		$scope.aid = $routeParams.aid;
 		$scope.albumName = $routeParams.name;
 		$scope.p = parseInt($routeParams.p || 1);
@@ -114,18 +137,29 @@ angular
 				});
 			});
 		}
-		$scope.editAlbum = function () {
-			tuKuApi.getService(function (service) {
-				service.updateAlbum($scope.aid, $scope.albumName, function (data) {
-					console.log(data)
+		$scope.editAlbum = function (event) {
+			if (event.keyCode == 13) {
+				$scope.readonly = true;
+				tuKuApi.getService(function (service) {
+					service.updateAlbum($scope.aid, $scope.albumName, function (data) {
+						$scope.$apply(function () {
+							$scope.$parent.status = data;
+						});
+					});
 				});
-			});
+			}
 		}
 		$scope.deleteAlbum = function () {
 			if (confirm('确认要删除相册吗？')) {
 				tuKuApi.getService(function (service) {
-					service.deleteAlbum($scope.aid, function () {
-						window.location.href = "/";
+					service.deleteAlbum($scope.aid, function (data) {
+						$scope.$apply(function () {
+							$scope.$parent.status = data;
+							if (data.code == '200') {
+								$location.path('/');
+							}
+						});
+
 					});
 				});
 			}
@@ -133,7 +167,10 @@ angular
 		$scope.deletePic = function (pid) {
 			if (confirm('确认要删除图片吗？')) {
 				tuKuApi.getService(function (service) {
-					service.deletePic(pid, function () {
+					service.deletePic(pid, function (data) {
+						$scope.$apply(function () {
+							$scope.$parent.status = data;
+						});
 						$scope.getpic();
 					});
 				});

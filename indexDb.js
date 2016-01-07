@@ -1,58 +1,66 @@
 var DbContext = {
+	name: "tuku",
 	DataBase: null,
-	getOpenSetting: function (onSuccess) {
+	wait: 500,
+	virsion: 1,
+	tables: [{ name: "openKey", schema: { keyPath: "id", autoIncrement: false } }],
+	getData: function (tableName, key, onSuccess) {
+		if (!DbContext.DataBase) {
+			setTimeout(function () {
+				DbContext.getData(tableName, key, onSuccess);
+			}, DbContext.wait += 500);
+			return;
+		}		
 		DbContext.DataBase
-			.transaction(["forToken"], "readwrite")
-			.objectStore("forToken")
-			.get("1").onsuccess = function (e) {
-				if (e.target.result) {
-					if (onSuccess) {
-						onSuccess.call(this, e.target.result);
-					}
+			.transaction([tableName], "readonly")
+			.objectStore(tableName)
+			.get(key).onsuccess = function (e) {
+				if (onSuccess) {
+					onSuccess.call(DbContext, e.target.result);
 				}
-				else {
-					var setting = {
-						id: "1",
-						AccessKey: "",
-						SecretKey: "",
-						OpenKey: ""
-					};
-					DbContext.DataBase
-						.transaction(["forToken"], "readwrite")
-						.objectStore("forToken")
-						.add(setting).onsuccess = function (e) {
-							if (onSuccess) {
-								onSuccess.call(this, setting);
-							}
-						}
+			}
+	},
+	insert: function (tableName, obj, onSuccess) {
+		DbContext.DataBase
+			.transaction([tableName], "readwrite")
+			.objectStore(tableName)
+			.add(obj).onsuccess = function (e) {
+				if (onSuccess) {
+					onSuccess.call(DbContext, e.target.result);
+				}
+			}
+	},
+	update: function (tableName, obj, onSuccess) {
+		DbContext.DataBase
+			.transaction([tableName], "readwrite")
+			.objectStore(tableName)
+			.put(obj).onsuccess = function (e) {
+				if (onSuccess) {
+					onSuccess.call(DbContext, e.target.result);
 				}
 			};
 	},
-	updateOpenSetting: function (setting, onSuccess) {
+	deleteData:function(tableName,key,onSuccess){
 		DbContext.DataBase
-			.transaction(["forToken"], "readwrite")
-			.objectStore("forToken")
-			.put(setting).onsuccess = function (e) {
+			.transaction([tableName], "readwrite")
+			.objectStore(tableName)
+			.delete(key).onsuccess = function (e) {
 				if (onSuccess) {
-					onSuccess.call(this, e.target.result);
+					onSuccess.call(DbContext, e.target.result);
 				}
 			};
 	}
 }
 
-var dbRequest = window.indexedDB.open("keys", 1);
-
+var dbRequest = window.indexedDB.open(DbContext.name, DbContext.virsion);
 dbRequest.onsuccess = function (e) {
 	DbContext.DataBase = e.target.result;
 }
 dbRequest.onupgradeneeded = function (e) {
 	var thisDB = e.target.result;
-	if (!thisDB.objectStoreNames.contains("forToken")) {
-		thisDB.createObjectStore("forToken", {  
-			// primary key  
-			keyPath: "id",  
-			// auto increment  
-			autoIncrement: false
-		});
+	for (var i = 0; i < DbContext.tables.length; i++) {
+		if (!thisDB.objectStoreNames.contains(DbContext.tables[i].name)) {
+			thisDB.createObjectStore(DbContext.tables[i].name, DbContext.tables[i].schema);
+		}
 	}
 }
