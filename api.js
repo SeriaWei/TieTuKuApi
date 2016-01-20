@@ -23,7 +23,7 @@ var tieTuKu = (function () {
             }
         };
         xhr.onerror = function (data) {
-            console.error(data.target.response);
+            console.log(data.target.response);
             callback.call(data, data.target.response);
         };
         xhr.upload.onprogress = function (e) {
